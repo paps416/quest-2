@@ -1,5 +1,8 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, 
+    QHBoxLayout, QTextEdit, QLineEdit, QPushButton
+)
 
 class ChatWindow(QMainWindow):
 
@@ -9,6 +12,36 @@ class ChatWindow(QMainWindow):
         # window settings
         self.setWindowTitle("Задание №2")
         self.setGeometry(100, 100, 700, 600)
+        
+        # creating interface
+        self.init_ui()
+
+    def init_ui(self):
+        
+        # init
+        self.chat_display = QTextEdit()
+        self.chat_display.setReadOnly(True)
+
+        # input label
+        self.input_field = QLineEdit()
+        self.input_field.setPlaceholderText("Введите сообщение")
+        
+        # send label
+        self.send_button = QPushButton("Отправить")
+
+        # style line
+        input_layout = QHBoxLayout()
+        input_layout.addWidget(self.input_field)
+        input_layout.addWidget(self.send_button)
+
+        # style layer
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.chat_display)
+        main_layout.addLayout(input_layout)
+
+        central_widget = QWidget()
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
