@@ -1,9 +1,17 @@
 import sys
+import ollama
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, QTextEdit, QLineEdit, QPushButton
 )
+from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
+
+try:
+    from qt_material import apply_stylesheet
+    QT_MATERIAL_AVAILABLE = True
+except ImportError:
+    QT_MATERIAL_AVAILABLE = False
 
 class ChatWindow(QMainWindow):
 
@@ -13,12 +21,15 @@ class ChatWindow(QMainWindow):
         # window settings
         self.setWindowTitle("Задание №2")
         self.setGeometry(100, 100, 700, 600)
+
+        self.model_name = 'dolphin-llama3' 
         
         # history
         self.messages = []
 
-        # creating interface
+        # creating interface + applying settings
         self.init_ui()
+        self.apply_styles()
 
     def init_ui(self):
         
@@ -51,6 +62,24 @@ class ChatWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
+    def apply_styles(self):
+        font = QFont("Arial", 12)
+        self.chat_display.setFont(font)
+        self.input_field.setFont(font)
+        self.send_button.setFont(font)
+
+        if QT_MATERIAL_AVAILABLE:
+            apply_stylesheet(app, theme='dark_teal.xml')
+        else:
+            # if GM style does not exists
+            self.setStyleSheet("""
+                QMainWindow { background-color: #2b2b2b; }
+                QTextEdit { background-color: #3c3f41; color: #a9b7c6; border-radius: 5px; }
+                QLineEdit { background-color: #3c3f41; color: #a9b7c6; border-radius: 5px; padding: 5px; }
+                QPushButton { background-color: #007bff; color: white; border: none; padding: 8px; border-radius: 5px; }
+                QPushButton:hover { background-color: #0056b3; }
+            """)
+
     def chat(self):
         
         # MAIN CHAT
@@ -68,8 +97,19 @@ class ChatWindow(QMainWindow):
         # update 
         QApplication.processEvents()
 
-        # временно
-        self.chat_display.append(f"\n in progress \n")
+        try:
+            # history block
+            response = ollama.chat(model=self.model_name, messages=self.messages)
+            assistant_reply = response["message"]["content"]
+            
+            self.messages.append({"role": "assistant", "content": assistant_reply})
+
+            self.chat_display.append(f"\n[Модель]: {assistant_reply}\n")
+
+        except Exception as e:
+            error_message = (f"\n[ERROR]: не получилось подключиться к ollama {e}")
+            self.chat_display.append(error_message)
+            self.messages.pop()
         
         self.chat_display.verticalScrollBar().setValue(self.chat_display.verticalScrollBar().maximum())
 
