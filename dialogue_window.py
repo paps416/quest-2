@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, QTextEdit, QLineEdit, QPushButton
 )
+from PyQt6.QtCore import Qt
 
 class ChatWindow(QMainWindow):
 
@@ -13,6 +14,9 @@ class ChatWindow(QMainWindow):
         self.setWindowTitle("Задание №2")
         self.setGeometry(100, 100, 700, 600)
         
+        # history
+        self.messages = []
+
         # creating interface
         self.init_ui()
 
@@ -26,8 +30,12 @@ class ChatWindow(QMainWindow):
         self.input_field = QLineEdit()
         self.input_field.setPlaceholderText("Введите сообщение")
         
+        # send
+        self.input_field.returnPressed.connect(self.chat)
+
         # send label
         self.send_button = QPushButton("Отправить")
+        self.send_button.clicked.connect(self.chat)
 
         # style line
         input_layout = QHBoxLayout()
@@ -42,6 +50,29 @@ class ChatWindow(QMainWindow):
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
+
+    def chat(self):
+        
+        # MAIN CHAT
+        user_input = self.input_field.text().strip()
+        if not user_input:
+            return
+
+        # +history
+        self.messages.append({"role": "user", "content": user_input})
+
+        # showing message
+        self.chat_display.append(f"[Пользователь]: {user_input}")
+        self.input_field.clear()
+        
+        # update 
+        QApplication.processEvents()
+
+        # временно
+        self.chat_display.append(f"\n in progress \n")
+        
+        self.chat_display.verticalScrollBar().setValue(self.chat_display.verticalScrollBar().maximum())
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
